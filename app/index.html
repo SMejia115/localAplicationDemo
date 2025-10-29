@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo Local App</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>💻 Demo Local App</h1>
+
+      <div class="status-card">
+        <h3>Estado del servidor:</h3>
+        <p id="server-status">Verificando...</p>
+        <button id="check-status">🔍 Ver estado</button>
+      </div>
+
+      <div class="message-card">
+        <h3>Enviar mensaje al backend</h3>
+        <input type="text" id="message-input" placeholder="Escribe algo..." />
+        <button id="send-btn">Enviar</button>
+        <p id="response"></p>
+      </div>
+      <div class="fibonacci-card">
+        <h3>Generar Serie Fibonacci</h3>
+        <input
+          type="number"
+          id="fib-input"
+          placeholder="Cantidad de números (n)"
+          min="1"
+        />
+        <button id="fib-btn">Generar</button>
+        <p id="fib-result"></p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
