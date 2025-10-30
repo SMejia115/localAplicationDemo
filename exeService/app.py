@@ -1,3 +1,4 @@
+import fastapi
 import os
 import sys
 import threading
@@ -9,6 +10,7 @@ from pystray import Icon, Menu, MenuItem
 from PIL import Image
 from plyer import notification
 import uvicorn
+import time
 
 
 # --- Función para acceder a recursos dentro del .exe ---
@@ -32,6 +34,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Dirección del servidor
+SERVER_URL = "http://127.0.0.1:5000"
 
 
 # ---- API ROUTES ----
@@ -82,7 +87,16 @@ def run_api():
 
 def open_front():
     """Abre la interfaz frontend"""
-    webbrowser.open("http://127.0.0.1:5500/frontend/index.html")
+    webbrowser.open("http://127.0.0.1:5500/app/index.html")
+
+
+def show_server_url(icon, item):
+    """Muestra la URL del backend"""
+    notification.notify(
+        title="Servidor en ejecución",
+        message=f"Backend activo en {SERVER_URL}",
+        timeout=5
+    )
 
 
 def on_exit(icon, item):
@@ -93,18 +107,42 @@ def on_exit(icon, item):
 
 def setup_tray():
     """Crea el ícono en la bandeja del sistema"""
-    icon_path = resource_path("icon.png")
-    icon_image = Image.open(icon_path)
-    menu = Menu(
-        MenuItem("Abrir interfaz", lambda: open_front()),
-        MenuItem("Salir", on_exit)
-    )
-    icon = Icon("DemoApp", icon_image, "DemoApp", menu)
-    icon.run()
+    try:
+        icon_path = resource_path("icon.png")
+        if not os.path.exists(icon_path):
+            notification.notify(
+                title="Error",
+                message="No se encontró el icono de bandeja (icon.png)",
+                timeout=5
+            )
+            return
 
+        icon_image = Image.open(icon_path)
+        menu = Menu(
+            MenuItem("Abrir interfaz", lambda: open_front()),
+            MenuItem("Mostrar URL", lambda: notification.notify(
+                title="Servidor local",
+                message="http://127.0.0.1:5000",
+                timeout=4
+            )),
+            MenuItem("Salir", on_exit)
+        )
+        icon = Icon("DemoApp", icon_image, "DemoApp", menu)
+        icon.run()
+    except Exception as e:
+        notification.notify(
+            title="Error en bandeja",
+            message=str(e),
+            timeout=6
+        )
 
-# ---- MAIN ----
 if __name__ == "__main__":
+    # Inicia el servidor en segundo plano
     api_thread = threading.Thread(target=run_api, daemon=True)
     api_thread.start()
+
+    # Espera un poco antes de crear la bandeja (asegura que todo cargó)
+    time.sleep(2)
+
+    # Ejecuta la bandeja en el hilo principal
     setup_tray()
