@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pystray import Icon, Menu, MenuItem
 from PIL import Image
 from plyer import notification
+from winotify import Notification, audio
 import uvicorn
 import time
 
@@ -50,11 +51,16 @@ async def post_message(request: Request):
     data = await request.json()
     message = data.get("message", "")
 
-    notification.notify(
+    # Usar winotify para notificaciones nativas de Windows
+    toast = Notification(
+        app_id="DemoApp",
         title="Nuevo mensaje recibido",
-        message=message,
-        timeout=5
+        msg=message,
+        duration="short",
+        icon=resource_path("icon.png")
     )
+    toast.set_audio(audio.Default, loop=False)
+    toast.show()
 
     return {"response": f"Servidor recibió: {message}"}
 
@@ -70,11 +76,16 @@ async def get_fibonacci(n: int):
         fib.append(fib[-1] + fib[-2])
     fib = fib[:n]
 
-    notification.notify(
+    # Usar winotify para notificaciones nativas de Windows
+    toast = Notification(
+        app_id="DemoApp",
         title="Serie Fibonacci generada",
-        message=f"Se generaron {n} números",
-        timeout=4
+        msg=f"Se generaron {n} números",
+        duration="short",
+        icon=resource_path("icon.png")
     )
+    toast.set_audio(audio.Default, loop=False)
+    toast.show()
 
     return {"fibonacci": fib}
 
@@ -92,11 +103,15 @@ def open_front():
 
 def show_server_url(icon, item):
     """Muestra la URL del backend"""
-    notification.notify(
+    toast = Notification(
+        app_id="DemoApp",
         title="Servidor en ejecución",
-        message=f"Backend activo en {SERVER_URL}",
-        timeout=5
+        msg=f"Backend activo en {SERVER_URL}",
+        duration="short",
+        icon=resource_path("icon.png")
     )
+    toast.set_audio(audio.Default, loop=False)
+    toast.show()
 
 
 def on_exit(icon, item):
@@ -110,31 +125,40 @@ def setup_tray():
     try:
         icon_path = resource_path("icon.png")
         if not os.path.exists(icon_path):
-            notification.notify(
+            toast = Notification(
+                app_id="DemoApp",
                 title="Error",
-                message="No se encontró el icono de bandeja (icon.png)",
-                timeout=5
+                msg="No se encontró el icono de bandeja (icon.png)",
+                duration="short"
             )
+            toast.show()
             return
 
         icon_image = Image.open(icon_path)
         menu = Menu(
             MenuItem("Abrir interfaz", lambda: open_front()),
-            MenuItem("Mostrar URL", lambda: notification.notify(
-                title="Servidor local",
-                message="http://127.0.0.1:5000",
-                timeout=4
-            )),
+            MenuItem("Mostrar URL", lambda: (lambda: (
+                toast := Notification(
+                    app_id="DemoApp",
+                    title="Servidor local",
+                    msg="http://127.0.0.1:5000",
+                    duration="short",
+                    icon=resource_path("icon.png")
+                ),
+                toast.show()
+            ))()),
             MenuItem("Salir", on_exit)
         )
         icon = Icon("DemoApp", icon_image, "DemoApp", menu)
         icon.run()
     except Exception as e:
-        notification.notify(
+        toast = Notification(
+            app_id="DemoApp",
             title="Error en bandeja",
-            message=str(e),
-            timeout=6
+            msg=str(e),
+            duration="long"
         )
+        toast.show()
 
 if __name__ == "__main__":
     # Inicia el servidor en segundo plano
