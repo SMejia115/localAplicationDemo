@@ -17,9 +17,10 @@ def build_executable():
     
     # Definir los argumentos para PyInstaller
     pyinstaller_args = [
-        "pyinstaller",
+        sys.executable,                       # Usar el mismo intérprete de Python
+        "-m", "PyInstaller",                  # Ejecutar PyInstaller como módulo
         "--onefile",                          # Crear un solo archivo ejecutable
-        "--windowed",                         # Sin ventana de consola
+        "--console",                          # CON ventana de consola
         "--name=DemoApp",                     # Nombre del ejecutable
         "--icon=icon.ico",                    # Ícono del ejecutable
         "--add-data=icon.png;.",              # Incluir el ícono PNG en el ejecutable
@@ -47,21 +48,18 @@ def build_executable():
     ]
     
     print("\nComando PyInstaller:")
-    print(" ".join(pyinstaller_args))
+    print(" ".join(pyinstaller_args[2:]))  # Omitir el ejecutable de Python y -m en la impresión
     print("\n" + "=" * 60)
+    print("Compilando... Esto puede tomar varios minutos.\n")
     
     try:
-        # Ejecutar PyInstaller
+        # Ejecutar PyInstaller sin capturar salida para ver progreso en tiempo real
         result = subprocess.run(
             pyinstaller_args,
-            check=True,
-            capture_output=True,
-            text=True
+            check=True
         )
         
         print("\n✓ Compilación exitosa!")
-        print("\nSalida:")
-        print(result.stdout)
         
         # Verificar que el ejecutable se creó
         exe_path = os.path.join("dist", "DemoApp.exe")
@@ -75,12 +73,7 @@ def build_executable():
         return True
         
     except subprocess.CalledProcessError as e:
-        print("\n✗ Error durante la compilación:")
-        print(e.stderr)
-        return False
-    except FileNotFoundError:
-        print("\n✗ Error: PyInstaller no está instalado.")
-        print("Instálalo con: pip install pyinstaller")
+        print("\n✗ Error durante la compilación")
         return False
     except Exception as e:
         print(f"\n✗ Error inesperado: {str(e)}")
@@ -93,7 +86,7 @@ def check_requirements():
     print("\nVerificando dependencias...")
     
     try:
-        import pyinstaller
+        import PyInstaller
         print("✓ PyInstaller está instalado")
     except ImportError:
         print("✗ PyInstaller no está instalado")
